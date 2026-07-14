@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://ybeiqtmqxszhtwmvoosn.supabase.co',
+    publishableKey: 'sb_publishable_N8sKm4olrkXYtlvI6kO06w_rFn87Kj5',
+  );
+
   runApp(const MyApp());
 }
 
@@ -54,18 +62,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+ 
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+Future<void> register() async {
+  try {
+    await Supabase.instance.client.auth.signUp(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Registration successful!'),
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(e.toString()),
+      ),
+    );
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,38 +111,33 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      body: Padding(
+  padding: const EdgeInsets.all(20),
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      TextField(
+        controller: emailController,
+        decoration: const InputDecoration(
+          labelText: 'Email',
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      const SizedBox(height: 16),
+      TextField(
+        controller: passwordController,
+        decoration: const InputDecoration(
+          labelText: 'Password',
+        ),
+        obscureText: true,
       ),
+      const SizedBox(height: 20),
+      ElevatedButton(
+        onPressed: register,
+        child: const Text('Register'),
+      ),
+    ],
+  ),
+),
     );
   }
 }
