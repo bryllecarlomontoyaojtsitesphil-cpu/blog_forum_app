@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'core/router/app_router.dart';
+import 'providers/auth_provider.dart';
+import 'providers/comment_provider.dart';
+import 'providers/post_provider.dart';
+import 'utils/constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // NOTE: newer supabase_flutter releases (2.6+) renamed this param to
+  // `publishableKey` to match Supabase's new API key format. If your
+  // installed version doesn't recognize `publishableKey`, use `anonKey:`
+  // instead — same value either way.
   await Supabase.initialize(
-    url: 'https://ybeiqtmqxszhtwmvoosn.supabase.co',
-    publishableKey: 'sb_publishable_N8sKm4olrkXYtlvI6kO06w_rFn87Kj5',
+    url: AppConstants.supabaseUrl,
+    publishableKey: AppConstants.supabaseAnonKey,
   );
 
   runApp(const MyApp());
@@ -15,129 +26,48 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => PostProvider()),
+        ChangeNotifierProvider(create: (_) => CommentProvider()),
+      ],
+      child: const _AppRoot(),
+    );
+  }
+}
+
+class _AppRoot extends StatelessWidget {
+  const _AppRoot();
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final router = AppRouter.build(authProvider);
+
+    return MaterialApp.router(
+      title: 'Blog / Forum App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
- 
-
-Future<void> register() async {
-  try {
-    await Supabase.instance.client.auth.signUp(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Registration successful!'),
-      ),
-    );
-  } catch (e) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(e.toString()),
-      ),
-    );
-  }
-}
-
-
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Padding(
-  padding: const EdgeInsets.all(20),
-  child: Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      TextField(
-        controller: emailController,
-        decoration: const InputDecoration(
-          labelText: 'Email',
-        ),
-      ),
-      const SizedBox(height: 16),
-      TextField(
-        controller: passwordController,
-        decoration: const InputDecoration(
-          labelText: 'Password',
-        ),
-        obscureText: true,
-      ),
-      const SizedBox(height: 20),
-      ElevatedButton(
-        onPressed: register,
-        child: const Text('Register'),
-      ),
-    ],
+  brightness: Brightness.dark,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: Colors.deepPurple,
+    brightness: Brightness.dark,
   ),
+  scaffoldBackgroundColor: const Color(0xFF1E1E1E),
+  cardTheme: CardThemeData(
+    color: const Color(0xFF2A2A2A), // slightly lighter than the background
+    elevation: 0,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+      side: BorderSide(color: Colors.white.withValues(alpha: 0.08)), // subtle edge
+    ),
+  ),
+  useMaterial3: true,
 ),
+      routerConfig: router,
     );
   }
 }
