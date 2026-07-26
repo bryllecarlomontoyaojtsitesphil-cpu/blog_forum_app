@@ -182,9 +182,13 @@ Future<void> _deleteComment(CommentModel comment) async {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Post'),
-      ),
+  backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () => context.go('/'),
+  ),
+  title: const Text('Post'),
+),
       body: _buildBody(auth, commentProvider),
     );
   }

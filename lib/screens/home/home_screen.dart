@@ -189,7 +189,10 @@ Future<void> _confirmLogout(BuildContext context) async {
         constraints: const BoxConstraints(maxWidth: 700),
         child: PostCard(
           post: post,
-          onTap: () => context.push('/post/${post.id}'),
+   onTap: () {
+  debugPrint('Navigating to post ${post.id}');
+  context.go('/post/${post.id}');
+},
         ),
       ),
     );
