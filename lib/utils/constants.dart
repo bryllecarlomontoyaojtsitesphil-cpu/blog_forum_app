@@ -12,10 +12,12 @@ class AppConstants {
   // Storage buckets (create these in Supabase Storage, both set to "Public")
   static const String postImagesBucket = 'post-images';
   static const String commentImagesBucket = 'comment-images';
+  static const String avatarsBucket = 'avatars';
 
   // Tables
   static const String postsTable = 'posts';
   static const String commentsTable = 'comments';
+  static const String profilesTable = 'profiles';
 
   // Pagination
   static const int postsPageSize = 10;

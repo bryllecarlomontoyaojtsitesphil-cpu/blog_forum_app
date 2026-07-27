@@ -71,21 +71,25 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     super.dispose();
   }
 
-Future<void> _deletePost() async {
-  final confirmed = await _confirm('Delete this post?');
-  if (!confirmed || _post == null) return;
-  if (!mounted) return;   // ← add this check here too
-  final success = await context.read<PostProvider>().deletePost(_post!);
-  if (!mounted) return;
-  if (success) {
-    context.pop();
-  } else {
-    final error = context.read<PostProvider>().errorMessage;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'Failed to delete post')),
-    );
+  Future<void> _deletePost() async {
+    final confirmed = await _confirm('Delete this post?');
+    if (!confirmed || _post == null) return;
+    if (!mounted) return;
+    final success = await context.read<PostProvider>().deletePost(_post!);
+    if (!mounted) return;
+    if (success) {
+      // This screen is only ever reached via context.go('/post/:id'), which
+      // replaces the stack rather than pushing onto it — so there's nothing
+      // for context.pop() to return to. Use go('/') instead, same as the
+      // back arrow above.
+      context.go('/');
+    } else {
+      final error = context.read<PostProvider>().errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error ?? 'Failed to delete post')),
+      );
+    }
   }
-}
 
   Future<bool> _confirm(String message) async {
     final result = await showDialog<bool>(
@@ -108,7 +112,8 @@ Future<void> _deletePost() async {
   }
 
   Future<void> _submitComment() async {
-    final userId = context.read<AuthProvider>().currentUser?.id;
+    final auth = context.read<AuthProvider>();
+    final userId = auth.currentUser?.id;
     if (userId == null) return;
     if (_newCommentController.text.trim().isEmpty && _newCommentImages.isEmpty) return;
 
@@ -161,19 +166,19 @@ Future<void> _deletePost() async {
     }
   }
 
-Future<void> _deleteComment(CommentModel comment) async {
-  final confirmed = await _confirm('Delete this comment?');
-  if (!confirmed) return;
-  if (!mounted) return;
-  final success = await context.read<CommentProvider>().deleteComment(comment);
-  if (!mounted) return;
-  if (!success) {
-    final error = context.read<CommentProvider>().errorMessage;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'Failed to delete comment')),
-    );
+  Future<void> _deleteComment(CommentModel comment) async {
+    final confirmed = await _confirm('Delete this comment?');
+    if (!confirmed) return;
+    if (!mounted) return;
+    final success = await context.read<CommentProvider>().deleteComment(comment);
+    if (!mounted) return;
+    if (!success) {
+      final error = context.read<CommentProvider>().errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error ?? 'Failed to delete comment')),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -182,13 +187,13 @@ Future<void> _deleteComment(CommentModel comment) async {
 
     return Scaffold(
       appBar: AppBar(
-  backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-  leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () => context.go('/'),
-  ),
-  title: const Text('Post'),
-),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
+        title: const Text('Post'),
+      ),
       body: _buildBody(auth, commentProvider),
     );
   }
@@ -210,60 +215,60 @@ Future<void> _deleteComment(CommentModel comment) async {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-          Row(
-            children: [
-              const CircleAvatar(radius: 20, child: Icon(Icons.person, size: 32)),
-              const SizedBox(width: 8),
-              Text(
-                post.authorEmail ?? 'User${post.userId.substring(0, 8)}',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const Spacer(),
-              Text(
-                formatPostDate(post.createdAt),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-const SizedBox(height: 12),
-if (post.images.isNotEmpty)
-  _PostImages(
-    key: ValueKey(post.images.join(',')),
-    images: post.images,
-  ),
-const SizedBox(height: 12),
-Row(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Expanded(
-      child: Text(post.title, style: Theme.of(context).textTheme.headlineSmall),
-    ),
-    if (auth.currentUser?.id == post.userId)
-      PopupMenuButton<String>(
-        icon: const Icon(Icons.more_horiz),
-        onSelected: (value) async {
-          if (value == 'edit') {
-            final updated = await showDialog<PostModel>(
-              context: context,
-              builder: (_) => EditPostScreen(postId: post.id),
-            );
-            if (updated != null && mounted) {
-              setState(() => _post = updated);
-            }
-          }
-          if (value == 'delete') _deletePost();
-        },
-        itemBuilder: (context) => const [
-          PopupMenuItem(value: 'edit', child: Text('Edit')),
-          PopupMenuItem(value: 'delete', child: Text('Delete')),
-        ],
-      ),
-  ],
-),
-              const SizedBox(height: 12),
-              Text(post.content, style: Theme.of(context).textTheme.bodyLarge),
+                  Row(
+                    children: [
+                      const CircleAvatar(radius: 20, child: Icon(Icons.person, size: 32)),
+                      const SizedBox(width: 8),
+                      Text(
+                        post.authorEmail ?? 'User${post.userId.substring(0, 8)}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const Spacer(),
+                      Text(
+                        formatPostDate(post.createdAt),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (post.images.isNotEmpty)
+                    _PostImages(
+                      key: ValueKey(post.images.join(',')),
+                      images: post.images,
+                    ),
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(post.title, style: Theme.of(context).textTheme.headlineSmall),
+                      ),
+                      if (auth.currentUser?.id == post.userId)
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_horiz),
+                          onSelected: (value) async {
+                            if (value == 'edit') {
+                              final updated = await showDialog<PostModel>(
+                                context: context,
+                                builder: (_) => EditPostScreen(postId: post.id),
+                              );
+                              if (updated != null && mounted) {
+                                setState(() => _post = updated);
+                              }
+                            }
+                            if (value == 'delete') _deletePost();
+                          },
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            PopupMenuItem(value: 'delete', child: Text('Delete')),
+                          ],
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(post.content, style: Theme.of(context).textTheme.bodyLarge),
                   const Divider(height: 32),
                   Text('Comments (${commentProvider.comments.length})',
                       style: Theme.of(context).textTheme.titleMedium),

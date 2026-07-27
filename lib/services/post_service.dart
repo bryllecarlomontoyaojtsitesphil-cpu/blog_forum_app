@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/profile_model.dart';
 import '../models/post_model.dart';
 import '../utils/constants.dart';
 import 'supabase_service.dart';
@@ -20,9 +21,11 @@ class PostService {
         .order('created_at', ascending: false)
         .range(from, to);
 
-    return (response as List)
+    return _withAuthorDisplayNames(
+      (response as List)
         .map((e) => PostModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+      .toList(),
+    );
   }
 
   Future<PostModel> fetchPostById(String id) async {
@@ -31,7 +34,8 @@ class PostService {
         .select()
         .eq('id', id)
         .single();
-    return PostModel.fromJson(response);
+    final post = PostModel.fromJson(response);
+    return (await _withAuthorDisplayNames([post])).first;
   }
 
   Future<PostModel> createPost({
@@ -50,7 +54,8 @@ class PostService {
         })
         .select()
         .single();
-    return PostModel.fromJson(response);
+    final post = PostModel.fromJson(response);
+    return (await _withAuthorDisplayNames([post])).first;
   }
 
   Future<PostModel> updatePost({
@@ -70,10 +75,32 @@ class PostService {
         .eq('id', id)
         .select()
         .single();
-    return PostModel.fromJson(response);
+    final post = PostModel.fromJson(response);
+      return (await _withAuthorDisplayNames([post])).first;
   }
 
   Future<void> deletePost(String id) async {
     await _client.from(AppConstants.postsTable).delete().eq('id', id);
+  }
+
+  Future<List<PostModel>> _withAuthorDisplayNames(List<PostModel> posts) async {
+    final userIds = posts.map((post) => post.userId).toSet().toList();
+    if (userIds.isEmpty) return posts;
+
+    final profileRows = await _client
+        .from(AppConstants.profilesTable)
+        .select()
+        .inFilter('id', userIds);
+
+    final profileById = {
+      for (final row in (profileRows as List).cast<Map<String, dynamic>>())
+        row['id'] as String: ProfileModel.fromJson(row).displayName,
+    };
+
+    return posts
+        .map(
+          (post) => post.copyWith(authorEmail: profileById[post.userId]),
+        )
+        .toList();
   }
 }

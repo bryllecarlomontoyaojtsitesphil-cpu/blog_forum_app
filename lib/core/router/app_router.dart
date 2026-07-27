@@ -4,6 +4,7 @@ import '../../screens/create_post/create_post_screen.dart';
 import '../../screens/edit_post/edit_post_screen.dart';
 import '../../screens/home/home_screen.dart';
 import '../../screens/post/post_detail_screen.dart';
+import '../../screens/profile/profile_screen.dart';
 
 class AppRouter {
   static GoRouter build(AuthProvider authProvider) {
@@ -14,7 +15,9 @@ class AppRouter {
         final loggedIn = authProvider.isLoggedIn;
         final loc = state.matchedLocation;
 
-        final requiresAuth = loc == '/create-post' || loc.startsWith('/edit-post');
+        final requiresAuth = loc == '/create-post' ||
+            loc.startsWith('/edit-post') ||
+            loc == '/profile';
 
         if (!loggedIn && requiresAuth) return '/';
         return null;
@@ -39,6 +42,10 @@ class AppRouter {
           builder: (context, state) => EditPostScreen(
             postId: state.pathParameters['id']!,
           ),
+        ),
+        GoRoute(
+          path: '/profile',
+          builder: (context, state) => const ProfileScreen(),
         ),
       ],
     );

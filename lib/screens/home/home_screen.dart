@@ -46,6 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final postProvider = context.watch<PostProvider>();
+    final avatarUrl = auth.currentProfile?.avatarUrl;
+    final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
+    final userEmail = auth.currentUser?.email ?? '';
 
     return Scaffold(
  appBar: AppBar(
@@ -69,20 +72,22 @@ actions: [
     Padding(
     padding: const EdgeInsets.only(right: 4),
     child: Text(
-      auth.currentProfile?.displayName ??
-        'User-${auth.currentUser?.id.substring(0, 8) ?? ''}'
+      userEmail,
       ),
     ),
     PopupMenuButton<String>(
-  icon: const CircleAvatar(
+  icon: CircleAvatar(
     radius: 16,
-    child: Icon(Icons.person, size: 18),
+    backgroundImage: hasAvatar ? NetworkImage(avatarUrl) : null,
+    child: !hasAvatar ? const Icon(Icons.person, size: 18) : null,
   ),
   offset: const Offset(0, 45),
   onSelected: (value) {
+    if (value == 'profile') context.push('/profile');
     if (value == 'logout') _confirmLogout(context);
   },
   itemBuilder: (context) => const [
+    PopupMenuItem(value: 'profile', child: Text('Profile')),
     PopupMenuItem(value: 'logout', child: Text('Logout')),
   ],
 ),

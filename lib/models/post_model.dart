@@ -54,6 +54,7 @@ class PostModel {
     String? title,
     String? content,
     List<String>? images,
+    String? authorEmail,
   }) {
     return PostModel(
       id: id,
@@ -63,7 +64,7 @@ class PostModel {
       images: images ?? this.images,
       createdAt: createdAt,
       updatedAt: updatedAt,
-      authorEmail: authorEmail,
+      authorEmail: authorEmail ?? this.authorEmail,
     );
   }
 }

@@ -6,9 +6,16 @@ class ProfileModel {
   ProfileModel({required this.id, this.username, this.avatarUrl});
 
   String get displayName =>
-      username != null && username!.trim().isNotEmpty
+      username != null &&
+              username!.trim().isNotEmpty &&
+              !_looksLikeEmail(username!)
           ? username!
           : 'User${id.substring(0, 8)}';
+
+  bool _looksLikeEmail(String value) {
+    final trimmed = value.trim();
+    return trimmed.contains('@') && trimmed.contains('.');
+  }
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(

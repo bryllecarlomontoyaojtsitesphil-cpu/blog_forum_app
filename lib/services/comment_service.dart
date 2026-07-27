@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/profile_model.dart';
 import '../models/comment_model.dart';
 import '../utils/constants.dart';
 import 'supabase_service.dart';
@@ -13,9 +14,11 @@ class CommentService {
         .eq('post_id', postId)
         .order('created_at', ascending: true);
 
-    return (response as List)
+    return _withAuthorDisplayNames(
+      (response as List)
         .map((e) => CommentModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+      .toList(),
+    );
   }
 
   Future<CommentModel> addComment({
@@ -34,7 +37,8 @@ class CommentService {
         })
         .select()
         .single();
-    return CommentModel.fromJson(response);
+      final comment = CommentModel.fromJson(response);
+      return (await _withAuthorDisplayNames([comment])).first;
   }
 
   Future<CommentModel> updateComment({
@@ -52,10 +56,32 @@ class CommentService {
         .eq('id', id)
         .select()
         .single();
-    return CommentModel.fromJson(response);
+    final comment = CommentModel.fromJson(response);
+      return (await _withAuthorDisplayNames([comment])).first;
   }
 
   Future<void> deleteComment(String id) async {
     await _client.from(AppConstants.commentsTable).delete().eq('id', id);
+  }
+
+  Future<List<CommentModel>> _withAuthorDisplayNames(List<CommentModel> comments) async {
+    final userIds = comments.map((comment) => comment.userId).toSet().toList();
+    if (userIds.isEmpty) return comments;
+
+    final profileRows = await _client
+        .from(AppConstants.profilesTable)
+        .select()
+        .inFilter('id', userIds);
+
+    final profileById = {
+      for (final row in (profileRows as List).cast<Map<String, dynamic>>())
+        row['id'] as String: ProfileModel.fromJson(row).displayName,
+    };
+
+    return comments
+        .map(
+          (comment) => comment.copyWith(authorEmail: profileById[comment.userId]),
+        )
+        .toList();
   }
 }

@@ -52,4 +52,21 @@ class CommentModel {
         'images': images,
         'updated_at': DateTime.now().toIso8601String(),
       };
+
+  CommentModel copyWith({
+    String? content,
+    List<String>? images,
+    String? authorEmail,
+  }) {
+    return CommentModel(
+      id: id,
+      postId: postId,
+      userId: userId,
+      content: content ?? this.content,
+      images: images ?? this.images,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      authorEmail: authorEmail ?? this.authorEmail,
+    );
+  }
 }
