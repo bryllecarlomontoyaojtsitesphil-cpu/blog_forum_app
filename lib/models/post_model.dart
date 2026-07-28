@@ -7,6 +7,7 @@ class PostModel {
   final DateTime createdAt;
   final DateTime? updatedAt;
   final String? authorEmail;
+  final String? authorAvatarUrl;
 
   PostModel({
     required this.id,
@@ -17,6 +18,7 @@ class PostModel {
     required this.createdAt,
     this.updatedAt,
     this.authorEmail,
+    this.authorAvatarUrl,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
@@ -55,6 +57,7 @@ class PostModel {
     String? content,
     List<String>? images,
     String? authorEmail,
+    String? authorAvatarUrl,
   }) {
     return PostModel(
       id: id,
@@ -65,6 +68,7 @@ class PostModel {
       createdAt: createdAt,
       updatedAt: updatedAt,
       authorEmail: authorEmail ?? this.authorEmail,
+      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
     );
   }
 }

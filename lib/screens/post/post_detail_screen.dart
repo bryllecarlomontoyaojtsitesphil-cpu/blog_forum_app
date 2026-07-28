@@ -219,7 +219,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 children: [
                   Row(
                     children: [
-                      const CircleAvatar(radius: 20, child: Icon(Icons.person, size: 32)),
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: post.authorAvatarUrl != null && post.authorAvatarUrl!.isNotEmpty
+                            ? CachedNetworkImageProvider(post.authorAvatarUrl!)
+                            : null,
+                        child: post.authorAvatarUrl == null || post.authorAvatarUrl!.isEmpty
+                            ? const Icon(Icons.person, size: 32)
+                            : null,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         post.authorEmail ?? 'User${post.userId.substring(0, 8)}',

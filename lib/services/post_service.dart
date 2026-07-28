@@ -94,12 +94,18 @@ class PostService {
 
     final profileById = {
       for (final row in (profileRows as List).cast<Map<String, dynamic>>())
-        row['id'] as String: ProfileModel.fromJson(row).displayName,
+        row['id'] as String: ProfileModel.fromJson(row),
     };
 
     return posts
         .map(
-          (post) => post.copyWith(authorEmail: profileById[post.userId]),
+          (post) {
+            final profile = profileById[post.userId];
+            return post.copyWith(
+              authorEmail: profile?.displayName,
+              authorAvatarUrl: profile?.avatarUrl,
+            );
+          },
         )
         .toList();
   }

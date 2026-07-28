@@ -7,6 +7,7 @@ class CommentModel {
   final DateTime createdAt;
   final DateTime? updatedAt;
   final String? authorEmail;
+  final String? authorAvatarUrl;
 
   CommentModel({
     required this.id,
@@ -17,6 +18,7 @@ class CommentModel {
     required this.createdAt,
     this.updatedAt,
     this.authorEmail,
+    this.authorAvatarUrl,
   });
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
@@ -57,6 +59,7 @@ class CommentModel {
     String? content,
     List<String>? images,
     String? authorEmail,
+    String? authorAvatarUrl,
   }) {
     return CommentModel(
       id: id,
@@ -67,6 +70,7 @@ class CommentModel {
       createdAt: createdAt,
       updatedAt: updatedAt,
       authorEmail: authorEmail ?? this.authorEmail,
+      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
     );
   }
 }

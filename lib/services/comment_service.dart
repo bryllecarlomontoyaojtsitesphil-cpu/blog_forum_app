@@ -14,7 +14,7 @@ class CommentService {
         .eq('post_id', postId)
         .order('created_at', ascending: true);
 
-    return _withAuthorDisplayNames(
+    return _withAuthorProfiles(
       (response as List)
         .map((e) => CommentModel.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -37,8 +37,8 @@ class CommentService {
         })
         .select()
         .single();
-      final comment = CommentModel.fromJson(response);
-      return (await _withAuthorDisplayNames([comment])).first;
+    final comment = CommentModel.fromJson(response);
+    return (await _withAuthorProfiles([comment])).first;
   }
 
   Future<CommentModel> updateComment({
@@ -57,14 +57,14 @@ class CommentService {
         .select()
         .single();
     final comment = CommentModel.fromJson(response);
-      return (await _withAuthorDisplayNames([comment])).first;
+    return (await _withAuthorProfiles([comment])).first;
   }
 
   Future<void> deleteComment(String id) async {
     await _client.from(AppConstants.commentsTable).delete().eq('id', id);
   }
 
-  Future<List<CommentModel>> _withAuthorDisplayNames(List<CommentModel> comments) async {
+  Future<List<CommentModel>> _withAuthorProfiles(List<CommentModel> comments) async {
     final userIds = comments.map((comment) => comment.userId).toSet().toList();
     if (userIds.isEmpty) return comments;
 
@@ -75,12 +75,18 @@ class CommentService {
 
     final profileById = {
       for (final row in (profileRows as List).cast<Map<String, dynamic>>())
-        row['id'] as String: ProfileModel.fromJson(row).displayName,
+        row['id'] as String: ProfileModel.fromJson(row),
     };
 
     return comments
         .map(
-          (comment) => comment.copyWith(authorEmail: profileById[comment.userId]),
+          (comment) {
+            final profile = profileById[comment.userId];
+            return comment.copyWith(
+              authorEmail: profile?.displayName,
+              authorAvatarUrl: profile?.avatarUrl,
+            );
+          },
         )
         .toList();
   }

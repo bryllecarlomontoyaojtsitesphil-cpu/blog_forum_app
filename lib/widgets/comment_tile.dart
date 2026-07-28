@@ -30,6 +30,9 @@ class CommentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final avatarUrl = comment.authorAvatarUrl;
+    final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Column(
@@ -40,7 +43,11 @@ class CommentTile extends StatelessWidget {
   children: [
     Row(
       children: [
-        const CircleAvatar(radius: 14, child: Icon(Icons.person, size: 16)),
+        CircleAvatar(
+          radius: 14,
+          backgroundImage: hasAvatar ? CachedNetworkImageProvider(avatarUrl) : null,
+          child: !hasAvatar ? const Icon(Icons.person, size: 16) : null,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(

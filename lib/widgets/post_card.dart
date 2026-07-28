@@ -11,6 +11,9 @@ class PostCard extends StatelessWidget {
 
   @override
 Widget build(BuildContext context) {
+  final avatarUrl = post.authorAvatarUrl;
+  final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
+
   return Card(
     margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     clipBehavior: Clip.antiAlias,
@@ -23,7 +26,11 @@ Widget build(BuildContext context) {
   padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
   child: Row(
     children: [
-      const CircleAvatar(radius: 20, child: Icon(Icons.person, size: 32)),
+      CircleAvatar(
+        radius: 20,
+        backgroundImage: hasAvatar ? CachedNetworkImageProvider(avatarUrl) : null,
+        child: !hasAvatar ? const Icon(Icons.person, size: 32) : null,
+      ),
       const SizedBox(width: 8),
       Text(
         post.authorEmail ?? 'User${post.userId.substring(0, 8)}',
